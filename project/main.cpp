@@ -90,6 +90,13 @@ void setBufferBound(int userbound)
     writeToLog("operation succeeded: set: " + to_string(userbound) + " as buffer bound");
     bounded = true;
     bufferbound = userbound;
+
+    // ! Case where buffer > new bound, we remove elements exceeding bound
+    if (buffer.size() > bufferbound)
+    {
+      //? we basicly remove range(userbound --> end of buffer)
+      buffer.erase(buffer.begin() + userbound, buffer.end())
+    }
   }
 }
 
