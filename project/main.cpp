@@ -19,6 +19,10 @@
 
 using namespace std;
 
+mutex bufmutex;
+mutex logmutex;
+mutex boundmutex;
+
 // ! Global variables
 vector<int> buffer;
 vector<string> logger;
@@ -28,7 +32,10 @@ int bufferbound = 0;
 // * This function writes a single log to the log vector
 void writeToLog(string log)
 {
+  //! entire function is critical
+  logmutex.lock();
   logger.push_back(log);
+  logmutex.unlock();
 }
 
 // * This function reads a specific log sample, by using an index as input
@@ -39,9 +46,13 @@ string readFromLog(int index)
 
   //? if size = 1, we index 0
   //! BEGIN OF CRITICAL SECTION
+  logmutex.lock();
   if (size >= index + 1)
   {
-    return logger[index];
+    string output = logger[index];
+    logmutex.unlock();
+    //? We use the stirng output because otherwise the return messes up our lock
+    return output;
   }
   //! END OF CRITICAL SECTION
   else if (size < index + 1)
@@ -55,22 +66,26 @@ string readFromLog(int index)
     std::cout << "ERROR: negative index" << endl;
     return "ERROR: negative index";
   }
+  logmutex.unlock();
 }
 
 // * This function prints the entire log onto the terminal
 // * It checks if the log is not empty, and shows that it is empty if it is.
 void printLog()
 {
+  logmutex.lock();
   //! BEGIN OF CRITICAL SECTION
   if (logger.size() > 0)
   {
     for (string element : logger)
       std::cout << element << ' ';
     //! END OF CRITICAL SECTION
+    logmutex.unlock();
     std::cout << endl;
   }
   else
   {
+    logmutex.unlock();
     std::cout << "The log is empty " << endl;
   }
 }
