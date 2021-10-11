@@ -40,6 +40,12 @@ void writeToBuffer(int element)
   buffer.push_back(element);
 }
 
+void printBuffer()
+{
+  for (int element : buffer)
+    std::cout << element << ' ';
+}
+
 void removeFromBuffer(int index)
 {
   //? This is a little more complicated
@@ -48,10 +54,22 @@ void removeFromBuffer(int index)
   //* 3 add back all elements after index (that are stored in different vector shortly)
   //* 4 save result to buffer.
   //! all of this can be done by the erase function of c++
-  buffer.erase(index);
+  buffer.erase(buffer.begin() + index);
+}
+
+void buffertests()
+{
+  printBuffer();
+  writeToBuffer(3);
+  writeToBuffer(4);
+  writeToBuffer(5);
+  printBuffer();
+  removeFromBuffer(0);
+  printBuffer();
 }
 
 int main(int argc, char *argv[])
 {
+  buffertests();
   return 0;
 }
