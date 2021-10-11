@@ -95,6 +95,8 @@ void printLog()
 // * the function also updates the log with operation about its success
 void writeToBuffer(int element)
 {
+  bufmutex.lock();
+  boundmutex.lock();
   //! ENTIRE FUNCTION IS CRITICAL
   if (bounded == true)
   {
@@ -114,6 +116,8 @@ void writeToBuffer(int element)
     buffer.push_back(element);
     writeToLog("operation succeeded, added: " + to_string(element) + " to buffer");
   }
+  boundmutex.unlock();
+  bufmutex.unlock();
 }
 
 // * This function sets the max bound of the buffer
@@ -121,6 +125,7 @@ void writeToBuffer(int element)
 // * It also provides the log with information about its success
 void setBufferBound(int userbound)
 {
+  boundmutex.lock();
   //! ENTIRE FUNCTION IS CRITICAL
   if (userbound == 0)
   {
@@ -138,20 +143,25 @@ void setBufferBound(int userbound)
     bounded = true;
     bufferbound = userbound;
 
+    bufmutex.lock();
     // ? Case where buffer > new bound, we remove elements exceeding bound
     if (buffer.size() > bufferbound)
     {
       //? we basicly remove range(userbound --> end of buffer)
       buffer.erase(buffer.begin() + userbound, buffer.end())
     }
+    bufmutex.unlock();
   }
+  boundmutex.unlock();
 }
 
 // * This function removes the buffer bound
 void removeBufferBound()
 {
   //! ENTIRE FUNCTION IS CRITICAL
+  bufmutex.lock();
   bounded = false;
+  bufmutex.unlock();
   // we do not have to reset the bound (because it will be reassigned when enabled again)
 }
 
@@ -159,16 +169,19 @@ void removeBufferBound()
 // * It checks if the buffer is empty and shows the buffer is empty if it is.
 void printBuffer()
 {
+  bufmutex.lock();
   //! BEGIN OF CRITICAL SECTION
   if (buffer.size() > 0)
   {
     for (int element : buffer)
       std::cout << element << ' ';
+    bufmutex.unlock();
     //! END OF CRITICAL SECTION
     std::cout << endl;
   }
   else
   {
+    bufmutex.unlock();
     std::cout << "buffer is empty" << endl;
   }
 }
@@ -178,12 +191,14 @@ void printBuffer()
 // * the function also writes to log about its succes
 void removeFromBuffer(int index)
 {
+  bufmutex.lock();
   //! BEGIN OF CRITICAL SECTION
   int size = buffer.size();
   //size 1 = index 0, so index 1 should be illegal
   if (index < size)
   {
     buffer.erase(buffer.begin() + index);
+    bufmutex.unlock();
     writeToLog("Operation succeeded: removed " + to_string(index) + " from buffer");
   }
   //! END OF CRITICAL SECTION
@@ -197,6 +212,7 @@ void removeFromBuffer(int index)
     std::cout << "ERROR: negative index" << endl;
     writeToLog("operation failed: negative index supplied to remove");
   }
+  bufmutex.unlock();
 }
 
 // * This function is used for testing some buffer operations
