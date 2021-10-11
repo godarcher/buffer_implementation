@@ -34,7 +34,22 @@ void writeToLog(string log)
 // * This function reads a specific log sample, by using an index as input
 string readFromLog(int index)
 {
-  return logger[index];
+  //? if size = 1, we index 0
+  if (logger.size() >= index + 1)
+  {
+    return logger[index];
+  }
+  else if (logger.size() < index + 1)
+  {
+    cout << "ERROR: index out of bounds" << endl;
+    return "ERROR: index out of bounds";
+  }
+  else
+  {
+    //? not in size and not higher then size so negative
+    cout << "ERROR: negative index" << endl;
+    return "ERROR: negative index";
+  }
 }
 
 // * This function prints the entire log onto the terminal
