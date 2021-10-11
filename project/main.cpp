@@ -93,12 +93,14 @@ void setBufferBound(int userbound)
   }
 }
 
+// * This function removes the buffer bound
 void removeBufferBound()
 {
   bounded = false;
   // we do not have to reset the bound (because it will be reassigned when enabled again)
 }
 
+// * This function prints out the entire buffer to the screen
 void printBuffer()
 {
   for (int element : buffer)
@@ -106,11 +108,13 @@ void printBuffer()
   std::cout << endl;
 }
 
+// * This function removes a specific element from the buffer
 void removeFromBuffer(int index)
 {
   buffer.erase(buffer.begin() + index);
 }
 
+// * This function is used for testing some buffer operations
 void buffertests()
 {
   std::cout << "empty buffer: " << endl;
@@ -125,6 +129,7 @@ void buffertests()
   printBuffer();
 }
 
+// * This is the main function, it is called when the program is ran
 int main(int argc, char *argv[])
 {
   buffertests();
