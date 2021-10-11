@@ -18,7 +18,19 @@
 // although it is good habit, you don't have to type 'std::' before many objects by including this line
 using namespace std;
 
+// for now we declare the important stuff here
+vector<int> buffer;
+vector<string> logger;
 
-int main(int argc, char* argv[]) {
-	return 0;
+void writeToLog()
+{
+}
+
+void readFromLog()
+{
+}
+
+int main(int argc, char *argv[])
+{
+  return 0;
 }
