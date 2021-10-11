@@ -19,15 +19,19 @@
 using namespace std;
 
 // for now we declare the important stuff here
+//TODO decide where this stays here
 vector<int> buffer;
 vector<string> logger;
 
-void writeToLog()
+//TODO We do all synchronization of these functions later on
+void writeToLog(string log)
 {
+  logger.push_back(log);
 }
 
-void readFromLog()
+string readFromLog(int index)
 {
+  return logger[index];
 }
 
 int main(int argc, char *argv[])
