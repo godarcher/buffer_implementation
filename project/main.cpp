@@ -62,13 +62,28 @@ void writeToBuffer(int element)
 
 void setBufferBound(int userbound)
 {
-  bounded = true;
-  bufferbound = userbound;
+  if (userbound == 0)
+  {
+    writeToLog("operation failed: invalid value 0 for parameter userbound");
+    cout << "you are putting in an invalid value (0), bound has to be > 0" << endl;
+  }
+  else if (userbound < 0)
+  {
+    writeToLog("operation failed: negative value for parameter userbound");
+    cout << "you are putting in an invalid value (negative), bound has to be > 0" << endl;
+  }
+  else
+  {
+    writeToLog("operation succeeded: set: " + to_string(userbound) + " as buffer bound");
+    bounded = true;
+    bufferbound = userbound;
+  }
 }
 
 void removeBufferBound()
 {
   bounded = false;
+  // we do not have to reset the bound (because it will be reassigned when enabled again)
 }
 
 void printBuffer()
@@ -78,12 +93,13 @@ void printBuffer()
   std::cout << endl;
 }
 
-//? This is a little more complicated
-//* 1 copy buffer
-//* 2 remove all elements till reached index is removed
-//* 3 add back all elements after index (that are stored in different vector shortly)
-//* 4 save result to buffer.
-//? all of this can be done by the erase function of c++
+void printLogger()
+{
+  for (int element : logger)
+    std::cout << element << ' ';
+  std::cout << endl;
+}
+
 void removeFromBuffer(int index)
 {
   buffer.erase(buffer.begin() + index);
