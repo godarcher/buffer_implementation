@@ -32,6 +32,7 @@ void writeToLog(string log)
 }
 
 // * This function reads a specific log sample, by using an index as input
+// * the function checks for wrong indexes and returns errors if there are any
 string readFromLog(int index)
 {
   //? if size = 1, we index 0
@@ -41,23 +42,31 @@ string readFromLog(int index)
   }
   else if (logger.size() < index + 1)
   {
-    cout << "ERROR: index out of bounds" << endl;
+    std::cout << "ERROR: index out of bounds" << endl;
     return "ERROR: index out of bounds";
   }
   else
   {
     //? not in size and not higher then size so negative
-    cout << "ERROR: negative index" << endl;
+    std::cout << "ERROR: negative index" << endl;
     return "ERROR: negative index";
   }
 }
 
 // * This function prints the entire log onto the terminal
+// * It checks if the log is not empty, and shows that it is empty if it is.
 void printLog()
 {
-  for (string element : logger)
-    std::cout << element << ' ';
-  std::cout << endl;
+  if (logger.size() > 0)
+  {
+    for (string element : logger)
+      std::cout << element << ' ';
+    std::cout << endl;
+  }
+  else
+  {
+    std::cout << "The log is empty " << endl;
+  }
 }
 
 // * This function writes to the buffer, it therefore
