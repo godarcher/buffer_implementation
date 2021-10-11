@@ -35,12 +35,16 @@ void writeToLog(string log)
 // * the function checks for wrong indexes and returns errors if there are any
 string readFromLog(int index)
 {
+  int size = logger.size();
+
   //? if size = 1, we index 0
-  if (logger.size() >= index + 1)
+  //! BEGIN OF CRITICAL SECTION
+  if (size >= index + 1)
   {
     return logger[index];
   }
-  else if (logger.size() < index + 1)
+  //! END OF CRITICAL SECTION
+  else if (size < index + 1)
   {
     std::cout << "ERROR: index out of bounds" << endl;
     return "ERROR: index out of bounds";
@@ -57,10 +61,12 @@ string readFromLog(int index)
 // * It checks if the log is not empty, and shows that it is empty if it is.
 void printLog()
 {
+  //! BEGIN OF CRITICAL SECTION
   if (logger.size() > 0)
   {
     for (string element : logger)
       std::cout << element << ' ';
+    //! END OF CRITICAL SECTION
     std::cout << endl;
   }
   else
@@ -74,6 +80,7 @@ void printLog()
 // * the function also updates the log with operation about its success
 void writeToBuffer(int element)
 {
+  //! ENTIRE FUNCTION IS CRITICAL
   if (bounded == true)
   {
     if (buffer.size() < bufferbound)
@@ -99,6 +106,7 @@ void writeToBuffer(int element)
 // * It also provides the log with information about its success
 void setBufferBound(int userbound)
 {
+  //! ENTIRE FUNCTION IS CRITICAL
   if (userbound == 0)
   {
     writeToLog("operation failed: invalid value 0 for parameter userbound");
@@ -115,7 +123,7 @@ void setBufferBound(int userbound)
     bounded = true;
     bufferbound = userbound;
 
-    // ! Case where buffer > new bound, we remove elements exceeding bound
+    // ? Case where buffer > new bound, we remove elements exceeding bound
     if (buffer.size() > bufferbound)
     {
       //? we basicly remove range(userbound --> end of buffer)
@@ -127,6 +135,7 @@ void setBufferBound(int userbound)
 // * This function removes the buffer bound
 void removeBufferBound()
 {
+  //! ENTIRE FUNCTION IS CRITICAL
   bounded = false;
   // we do not have to reset the bound (because it will be reassigned when enabled again)
 }
@@ -135,10 +144,12 @@ void removeBufferBound()
 // * It checks if the buffer is empty and shows the buffer is empty if it is.
 void printBuffer()
 {
+  //! BEGIN OF CRITICAL SECTION
   if (buffer.size() > 0)
   {
     for (int element : buffer)
       std::cout << element << ' ';
+    //! END OF CRITICAL SECTION
     std::cout << endl;
   }
   else
@@ -148,15 +159,20 @@ void printBuffer()
 }
 
 // * This function removes a specific element from the buffer
+// * it also checks for wrong indexes
+// * the function also writes to log about its succes
 void removeFromBuffer(int index)
 {
+  //! BEGIN OF CRITICAL SECTION
+  int size = buffer.size();
   //size 1 = index 0, so index 1 should be illegal
-  if (index < buffer.size())
+  if (index < size)
   {
     buffer.erase(buffer.begin() + index);
     writeToLog("Operation succeeded: removed " + to_string(index) + " from buffer");
   }
-  else if (index >= buffer.size())
+  //! END OF CRITICAL SECTION
+  else if (index >= size)
   {
     std::cout << "ERROR: index out of bounds" << endl;
     writeToLog("operation failed: out of bounds index supplied to remove");
