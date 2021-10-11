@@ -70,7 +70,7 @@ void printLog()
 }
 
 // * This function writes to the buffer, it therefore
-// * Checks wether or not it is already full if bounden
+// * Checks wether or not it is already full if bounded
 // * the function also updates the log with operation about its success
 void writeToBuffer(int element)
 {
@@ -132,17 +132,40 @@ void removeBufferBound()
 }
 
 // * This function prints out the entire buffer to the screen
+// * It checks if the buffer is empty and shows the buffer is empty if it is.
 void printBuffer()
 {
-  for (int element : buffer)
-    std::cout << element << ' ';
-  std::cout << endl;
+  if (buffer.size() > 0)
+  {
+    for (int element : buffer)
+      std::cout << element << ' ';
+    std::cout << endl;
+  }
+  else
+  {
+    std::cout << "buffer is empty" << endl;
+  }
 }
 
 // * This function removes a specific element from the buffer
 void removeFromBuffer(int index)
 {
-  buffer.erase(buffer.begin() + index);
+  //size 1 = index 0, so index 1 should be illegal
+  if (index < buffer.size())
+  {
+    buffer.erase(buffer.begin() + index);
+    writeToLog("Operation succeeded: removed " + to_string(index) + " from buffer");
+  }
+  else if (index >= buffer.size())
+  {
+    std::cout << "ERROR: index out of bounds" << endl;
+    writeToLog("operation failed: out of bounds index supplied to remove");
+  }
+  else if (index < 0)
+  {
+    std::cout << "ERROR: negative index" << endl;
+    writeToLog("operation failed: negative index supplied to remove");
+  }
 }
 
 // * This function is used for testing some buffer operations
