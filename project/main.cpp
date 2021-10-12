@@ -110,13 +110,13 @@ void writeToBuffer(int element)
     {
       writeToLog("operation failed: The buffer has already reached its bound");
     }
+    boundmutex.unlock();
   }
   else // ? not bounded
   {
     buffer.push_back(element);
     writeToLog("operation succeeded, added: " + to_string(element) + " to buffer");
   }
-  boundmutex.unlock();
   bufmutex.unlock();
 }
 
