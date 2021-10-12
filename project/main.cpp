@@ -68,13 +68,15 @@ string readFromLog(int index)
     std::cout << "ERROR: index out of bounds" << endl;
     return "ERROR: index out of bounds";
   }
+  else {
+    logmutex.unlock();
+  }
 }
 
 // * This function prints the entire log onto the terminal
 // * It checks if the log is not empty, and shows that it is empty if it is.
 void printLog()
 {  
-  logmutex.lock();
   //ascii art for visual purposes
   cout << endl;
   cout << "     )                                                      " << endl;
@@ -87,6 +89,7 @@ void printLog()
   cout << "  \\___/| .__/\\___||_| \\__,_|\\__||_\\___/_||_|  |_\\___/\\__, | " << endl;
   cout << "       |_|                                           |___/ " << endl;
   cout << endl;
+  logmutex.lock();
   //! BEGIN OF CRITICAL SECTION
   if (logger.size() > 0)
   {
@@ -139,44 +142,51 @@ void writeToBuffer(int element)
 // * It also provides the log with information about its success
 void setBufferBound(int userbound)
 {
+  //! THIS SECTION IS CRITICAL
   boundmutex.lock();
-  //! ENTIRE FUNCTION IS CRITICAL
-  if (userbound == 0)
+  int usedbound = userbound;
+  boundmutex.unlock();
+  //! END OF CRITICAL SECTION
+
+  if (usedbound == 0)
   {
     writeToLog("operation failed: invalid value 0 for parameter userbound.");
     cout << "you are putting in an invalid value (0), bound has to be > 0" << endl;
   }
-  else if (userbound < 0)
+  else if (usedbound < 0)
   {
     writeToLog("operation failed: negative value for parameter userbound.");
     cout << "you are putting in an invalid value (negative), bound has to be > 0" << endl;
   }
   else
   {
-    writeToLog("operation succeeded: set " + to_string(userbound) + " as buffer bound.");
+    writeToLog("operation succeeded: set " + to_string(usedbound) + " as buffer bound.");
+    //! CRITICAL SECTION BEGIN
+    boundmutex.lock();
     bounded = true;
-    bufferbound = userbound;
+    bufferbound = usedbound;
 
+    boundmutex.unlock();
     bufmutex.lock();
     // ? Case where buffer > new bound, we remove elements exceeding bound
     if (buffer.size() > bufferbound)
     {
       //? we basicly remove range(userbound --> end of buffer)
-      buffer.erase(buffer.begin() + userbound, buffer.end());
+      buffer.erase(buffer.begin() + usedbound, buffer.end());
     }
     bufmutex.unlock();
+    //! CRITICAL SECTION END
   }
-  boundmutex.unlock();
 }
 
 // * This function removes the buffer bound
 void removeBufferBound()
 {
   //! ENTIRE FUNCTION IS CRITICAL
-  bufmutex.lock();
+  boundmutex.lock();
   bounded = false;
-  writeToLog("operation succeeded: set the buffer bound to unbouded");
-  bufmutex.unlock();
+  writeToLog("operation succeeded: set the buffer bound to unbounded");
+  boundmutex.unlock();
   // we do not have to reset the bound (because it will be reassigned when enabled again)
 }
 
@@ -220,7 +230,7 @@ void removeFromBuffer(int index)
   {
     buffer.erase(buffer.begin() + index);
     bufmutex.unlock();
-    writeToLog("Operation succeeded: removed " + to_string(index) + " from buffer.");
+    writeToLog("operation succeeded: removed " + to_string(index) + " from buffer.");
   }
   //! END OF CRITICAL SECTION
   else if (index >= size)
@@ -255,7 +265,7 @@ void buffertest2()
   readFromLog(-4);      //negative index
   setBufferBound(0);    //empty buffer size
   setBufferBound(-3);   //negative buffer size
-  removeFromBuffer(0);  //0 case
+  removeFromBuffer(0);  //declaring an empty buffer
   removeFromBuffer(20); //out of bounds
   removeFromBuffer(-2); //negative index
   printLog();           //show output in log of above edge cases
@@ -323,18 +333,94 @@ void buffertest4()
   t4.join();
 
   //test buffertest3 with threads
-  std::thread t5 (buffertest2);
-  std::thread t6 (buffertest2);
+  std::thread t5 (buffertest3);
+  std::thread t6 (buffertest3);
   t5.join();
   t6.join();
+
+  //test the functions trough each other
+  std::thread t7 (buffertest1);
+  std::thread t8 (buffertest2);
+  t7.join();
+  t8.join();
+
+  //test the functions trough each other
+  std::thread t9 (buffertest1);
+  std::thread t10 (buffertest3);
+  t9.join();
+  t10.join();
+  
+  //test the functions trough each other
+  std::thread t11 (buffertest2);
+  std::thread t12 (buffertest3);
+  t11.join();
+  t12.join();
+}
+
+// * This function tests threads with more then 2 threads
+// * the main power of this is finding any deadlocks/starvation
+void buffertest5()
+{
+  //test the functions trough each other
+  std::thread t12 (buffertest1);
+  std::thread t13 (buffertest2); //1 --> 2 --> 3 gives a mistake
+  std::thread t14 (buffertest3);
+  t12.join();
+  t13.join();
+  t14.join();
+
+  std::thread t15 (buffertest1);
+  std::thread t16 (buffertest1);
+  std::thread t17 (buffertest1);
+  t15.join();
+  t16.join();
+  t17.join();
+
+  std::thread t18 (buffertest2);
+  std::thread t19 (buffertest2);
+  std::thread t20 (buffertest3);
+  std::thread t21 (buffertest3);
+  std::thread t22 (buffertest1);
+  t18.join();
+  t19.join();
+  t20.join();
+  t21.join();
+  t22.join();
+
+  std::thread t23 (buffertest1);
+  std::thread t24 (buffertest3);
+  std::thread t25 (buffertest2);
+  std::thread t26 (buffertest3);
+  std::thread t27 (buffertest1);
+  std::thread t28 (buffertest2);
+  std::thread t29 (buffertest3);
+  std::thread t30 (buffertest3);
+  std::thread t31 (buffertest2);
+  t23.join();
+  t24.join();
+  t25.join();
+  t26.join();
+  t27.join();
+  t28.join();
+  t29.join();
+  t30.join();
+  t31.join();
+
+}
+
+//* This runs all tests combined
+void alltests()
+{
+  buffertest2(); //edge case first
+  buffertest1();
+  buffertest3();
+  buffertest4();
+  buffertest5();
 }
 
 // * This is the main function, it is called when the program is ran
 int main(int argc, char *argv[])
 {
-  //buffertest1();
-  //buffertest2();
-  buffertest3();
-  //buffertest4();
+  alltests();
   return 0;
 }
