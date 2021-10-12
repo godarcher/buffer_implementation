@@ -47,7 +47,14 @@ string readFromLog(int index)
   //? if size = 1, we index 0
   //! BEGIN OF CRITICAL SECTION
   logmutex.lock();
-  if (size >= index + 1)
+  if (index < 0)
+  {
+    logmutex.unlock();
+    //? not in size and not higher then size so negative
+    std::cout << "ERROR: negative index" << endl;
+    return "ERROR: negative index";
+  }
+  else if (size >= index + 1)
   {
     string output = logger[index];
     logmutex.unlock();
@@ -57,28 +64,34 @@ string readFromLog(int index)
   //! END OF CRITICAL SECTION
   else if (size < index + 1)
   {
+    logmutex.unlock();
     std::cout << "ERROR: index out of bounds" << endl;
     return "ERROR: index out of bounds";
   }
-  else
-  {
-    //? not in size and not higher then size so negative
-    std::cout << "ERROR: negative index" << endl;
-    return "ERROR: negative index";
-  }
-  logmutex.unlock();
 }
 
 // * This function prints the entire log onto the terminal
 // * It checks if the log is not empty, and shows that it is empty if it is.
 void printLog()
-{
+{  
   logmutex.lock();
+  //ascii art for visual purposes
+  cout << endl;
+  cout << "     )                                                      " << endl;
+  cout << "  ( /(                         )               (             " << endl;
+  cout << "  )\\())         (  (      ) ( /((              )\\     (  (   " << endl;
+  cout << " ((_)\\  `  )   ))\\ )(  ( /( )\\())\\  (   (     ((_)(   )\\))(  " << endl;
+  cout << "   ((_) /(/(  /((_|()\\ )(_)|_))((_) )\\  )\\ )   _  )\\ ((_))\\  " << endl;
+  cout << "  / _ \\((_)_\\(_))  ((_|(_)_| |_ (_)((_)_(_/(  | |((_) (()(_) " << endl;
+  cout << " | (_) |  _ \\) -_)|  _/ _` |  _|| / _ \\   \\)) | / _ \\/ _` |  " << endl;
+  cout << "  \\___/| .__/\\___||_| \\__,_|\\__||_\\___/_||_|  |_\\___/\\__, | " << endl;
+  cout << "       |_|                                           |___/ " << endl;
+  cout << endl;
   //! BEGIN OF CRITICAL SECTION
   if (logger.size() > 0)
   {
     for (string element : logger)
-      std::cout << element << ' ';
+      std::cout << element << endl;
     //! END OF CRITICAL SECTION
     logmutex.unlock();
     std::cout << endl;
@@ -86,7 +99,7 @@ void printLog()
   else
   {
     logmutex.unlock();
-    std::cout << "The log is empty " << endl;
+    std::cout << "The log is empty." << endl;
   }
 }
 
@@ -104,18 +117,19 @@ void writeToBuffer(int element)
     {
       // ? There is room left so we push
       buffer.push_back(element);
-      writeToLog("operation succeeded, added: " + to_string(element) + " to buffer");
+      writeToLog("operation succeeded: added " + to_string(element) + " to buffer.");
     }
     else if (buffer.size() == bufferbound)
     {
-      writeToLog("operation failed: The buffer has already reached its bound");
+      writeToLog("operation failed: The buffer has already reached its bound.");
     }
     boundmutex.unlock();
   }
   else // ? not bounded
   {
+    boundmutex.unlock();
     buffer.push_back(element);
-    writeToLog("operation succeeded, added: " + to_string(element) + " to buffer");
+    writeToLog("operation succeeded: added " + to_string(element) + " to buffer");
   }
   bufmutex.unlock();
 }
@@ -129,17 +143,17 @@ void setBufferBound(int userbound)
   //! ENTIRE FUNCTION IS CRITICAL
   if (userbound == 0)
   {
-    writeToLog("operation failed: invalid value 0 for parameter userbound");
+    writeToLog("operation failed: invalid value 0 for parameter userbound.");
     cout << "you are putting in an invalid value (0), bound has to be > 0" << endl;
   }
   else if (userbound < 0)
   {
-    writeToLog("operation failed: negative value for parameter userbound");
+    writeToLog("operation failed: negative value for parameter userbound.");
     cout << "you are putting in an invalid value (negative), bound has to be > 0" << endl;
   }
   else
   {
-    writeToLog("operation succeeded: set: " + to_string(userbound) + " as buffer bound");
+    writeToLog("operation succeeded: set " + to_string(userbound) + " as buffer bound.");
     bounded = true;
     bufferbound = userbound;
 
@@ -161,6 +175,7 @@ void removeBufferBound()
   //! ENTIRE FUNCTION IS CRITICAL
   bufmutex.lock();
   bounded = false;
+  writeToLog("operation succeeded: set the buffer bound to unbouded");
   bufmutex.unlock();
   // we do not have to reset the bound (because it will be reassigned when enabled again)
 }
@@ -173,11 +188,12 @@ void printBuffer()
   //! BEGIN OF CRITICAL SECTION
   if (buffer.size() > 0)
   {
+    std::cout << "BUFFER: { ";
     for (int element : buffer)
       std::cout << element << ' ';
     bufmutex.unlock();
     //! END OF CRITICAL SECTION
-    std::cout << endl;
+    std::cout << "}" << endl;
   }
   else
   {
@@ -194,23 +210,23 @@ void removeFromBuffer(int index)
   bufmutex.lock();
   //! BEGIN OF CRITICAL SECTION
   int size = buffer.size();
+  if (index < 0)
+  {
+    std::cout << "ERROR: negative index" << endl;
+    writeToLog("operation failed: negative index supplied to remove.");
+  }
   //size 1 = index 0, so index 1 should be illegal
-  if (index < size)
+  else if (index < size)
   {
     buffer.erase(buffer.begin() + index);
     bufmutex.unlock();
-    writeToLog("Operation succeeded: removed " + to_string(index) + " from buffer");
+    writeToLog("Operation succeeded: removed " + to_string(index) + " from buffer.");
   }
   //! END OF CRITICAL SECTION
   else if (index >= size)
   {
     std::cout << "ERROR: index out of bounds" << endl;
-    writeToLog("operation failed: out of bounds index supplied to remove");
-  }
-  else if (index < 0)
-  {
-    std::cout << "ERROR: negative index" << endl;
-    writeToLog("operation failed: negative index supplied to remove");
+    writeToLog("operation failed: out of bounds index supplied to remove.");
   }
   bufmutex.unlock();
 }
@@ -235,18 +251,94 @@ void buffertest2()
 {
   printLog();           //empty log
   printBuffer();        //empty buffer
-  readFromLog(10);      //out of bounds
-  readFromLog(-3);      //negative index
+  readFromLog(20);      //out of bounds
+  readFromLog(-4);      //negative index
   setBufferBound(0);    //empty buffer size
   setBufferBound(-3);   //negative buffer size
+  removeFromBuffer(0);  //0 case
   removeFromBuffer(20); //out of bounds
   removeFromBuffer(-2); //negative index
+  printLog();
+}
+
+// * this function tests buffer bound edge cases
+void buffertest3()
+{
+    //Test normal buffer bound
+    printBuffer();
+    writeToBuffer(3);
+    writeToBuffer(4);
+    writeToBuffer(5);
+    writeToBuffer(3);
+    writeToBuffer(4);
+    writeToBuffer(5);
+    writeToBuffer(3);
+    writeToBuffer(4);
+    writeToBuffer(5);
+    printBuffer();
+    setBufferBound(4);
+
+    //Test incrementing buffer bounds
+    printBuffer();
+    writeToBuffer(3);
+    writeToBuffer(4);
+    writeToBuffer(5);
+    printLog();
+    printBuffer();
+    setBufferBound(8);
+    printBuffer();
+    writeToBuffer(6);
+    writeToBuffer(7);
+    writeToBuffer(8);
+    writeToBuffer(9);
+    writeToBuffer(10);
+    printBuffer();
+    printLog();
+
+    //Test what happens when we remove the buffer bound
+    removeBufferBound();
+    writeToBuffer(66);
+    writeToBuffer(76);
+    writeToBuffer(86);
+    writeToBuffer(96);
+    writeToBuffer(160);
+    printBuffer();
+    printLog();
+}
+
+// * This functions tests buffer functions threaded
+void buffertest4()
+{
+  /*
+  std::thread t1 (buffertest1);  
+  std::thread t2 (buffertest1); 
+
+  t1.join();
+  t2.join();
+  cout<< "FINISHED 1" <<endl;
+
+  std::thread t3 (buffertest2);
+  std::thread t4 (buffertest2);
+
+  t3.join();
+  t4.join();
+  cout<< "FINISHED 2" <<endl;
+  */
+  std::thread t5 (buffertest2);
+  std::thread t6 (buffertest2);
+  
+  t5.join();
+  t6.join();
+
+  cout<< "FINISHED 3" <<endl;
 }
 
 // * This is the main function, it is called when the program is ran
 int main(int argc, char *argv[])
 {
-  buffertest1();
-  buffertest2();
+  //buffertest1();
+  //buffertest2();
+  buffertest3();
+  //buffertest4();
   return 0;
 }
