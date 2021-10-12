@@ -258,7 +258,7 @@ void buffertest2()
   removeFromBuffer(0);  //0 case
   removeFromBuffer(20); //out of bounds
   removeFromBuffer(-2); //negative index
-  printLog();
+  printLog();           //show output in log of above edge cases
 }
 
 // * this function tests buffer bound edge cases
@@ -309,28 +309,24 @@ void buffertest3()
 // * This functions tests buffer functions threaded
 void buffertest4()
 {
-  /*
+
+  //test buffertest1 with threads
   std::thread t1 (buffertest1);  
   std::thread t2 (buffertest1); 
-
   t1.join();
   t2.join();
-  cout<< "FINISHED 1" <<endl;
 
+  //test buffertest2 with threads
   std::thread t3 (buffertest2);
   std::thread t4 (buffertest2);
-
   t3.join();
   t4.join();
-  cout<< "FINISHED 2" <<endl;
-  */
+
+  //test buffertest3 with threads
   std::thread t5 (buffertest2);
   std::thread t6 (buffertest2);
-  
   t5.join();
   t6.join();
-
-  cout<< "FINISHED 3" <<endl;
 }
 
 // * This is the main function, it is called when the program is ran
