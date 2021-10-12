@@ -14,7 +14,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
-//includes from here one are our own
+//includes from here on are our own
 #include <string>
 
 using namespace std;
