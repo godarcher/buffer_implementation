@@ -148,7 +148,7 @@ void setBufferBound(int userbound)
     if (buffer.size() > bufferbound)
     {
       //? we basicly remove range(userbound --> end of buffer)
-      buffer.erase(buffer.begin() + userbound, buffer.end())
+      buffer.erase(buffer.begin() + userbound, buffer.end());
     }
     bufmutex.unlock();
   }
@@ -216,7 +216,7 @@ void removeFromBuffer(int index)
 }
 
 // * This function is used for testing some buffer operations
-void buffertests()
+void buffertest1()
 {
   std::cout << "empty buffer: " << endl;
   printBuffer();
@@ -230,9 +230,23 @@ void buffertests()
   printBuffer();
 }
 
+// * This function is used for testing some special cases
+void buffertest2()
+{
+  printLog();           //empty log
+  printBuffer();        //empty buffer
+  readFromLog(10);      //out of bounds
+  readFromLog(-3);      //negative index
+  setBufferBound(0);    //empty buffer size
+  setBufferBound(-3);   //negative buffer size
+  removeFromBuffer(20); //out of bounds
+  removeFromBuffer(-2); //negative index
+}
+
 // * This is the main function, it is called when the program is ran
 int main(int argc, char *argv[])
 {
-  buffertests();
+  buffertest1();
+  buffertest2();
   return 0;
 }
